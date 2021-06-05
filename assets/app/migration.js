@@ -13,9 +13,9 @@ function deleteConfig() {
 
 		logic = {};
 
-		alert("Файлы удалены.");
+		alert("Файлы очищены.");
 	} else {
-		alert("Файлы не определены.");
+		alert("Файлы не добавлены.");
 	}
 
 	return true;
@@ -107,7 +107,7 @@ function controllerManage(input) {
 /* Функции проверки */
 function checkJSON() {
 	if(!structure) {
-		alert("Файл структуры не был выбран.")
+		alert("Файл структуры не был добавлен.")
 
 		return false;
 	}
@@ -119,7 +119,7 @@ function checkJSON() {
 
 function checkController() {
 	if(!controller) {
-		alert("Файл логики не был выбран.")
+		alert("Файл логики не был добавлен.")
 
 		return false;
 	}
