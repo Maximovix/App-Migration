@@ -1,0 +1,16 @@
+body {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	background-color: #D9CA2A;
+
+	font-size: 16px;
+	font-family: 'Arial';
+}
+
+.textArea {
+	border-radius: 30px; 
+	background-radius: 30px; 
+	border-color: #111;
+	border-width: 10px;
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="icon" href="assets/images/logo/logo.png" type="image/icon type">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="assets/style/style.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Stint+Ultra+Condensed&display=swap" rel="stylesheet">
+	<title>Миграция</title>
+</head>
+<body>
+
+	<div class="wrapper">
+		<header class="header">
+			<div class="header__title">
+				<p>Приложение миграции</p>
+			</div>
+		</header>
+
+		<section class="main">
+			<div class="check__button">
+				<button onclick="checkController()" class="button__event">Проверка файла логики</button>
+
+				<button onclick="checkJSON()" class="button__event">Проверка JSON</button> 
+			</div>
+
+			<div class="config">
+				<form action="" class="config__form">
+					<div class="config__item">
+						<label class="label__form">
+							<i class="material-icons">attach_file</i>
+							<span class="config__title">Добавить файла логики</span>
+							<input class="input__form" type="file" onchange="controllerManage(this)">
+						</label>
+					</div>
+
+					<div class="config__item">
+						<label class="label__form">
+							<i class="material-icons">attach_file</i>
+							<span class="config__title">Выбор файла JSON</span>
+							<input class="input__form" type="file" onchange="structureManage(this)">
+						</label>
+					</div>	
+				</form>
+			</div>
+
+			<div class="action__button">
+				<button onclick="migration()" class="button__event">Результат</button>   
+
+				<button onclick="deleteConfig()" class="button__event">Удалить</button>   
+			</div>
+		</section>
+
+		<footer class="footer">
+			<div class="footer__title">Нани М.Б. БСМО-01-19</div>
+			<div class="copyright">Copyright © 2021</div>
+		</footer>
+	</div>
+
+	<script type="text/javascript" src="assets/app/migration.js"></script>
+</body>
+</html>
