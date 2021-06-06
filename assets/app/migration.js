@@ -1,12 +1,14 @@
 'use strict'
 
+/* Глобальные переменные для всей программы */
 let structure;
 let	controller;
 let date = {};
 let logic = {}; 
 
-function deleteConfig() {
-
+/* Общие функции приложения миграции */
+/* Функция очистки конфигурационных файлов */
+function сlearConfig() {
 	if( structure != null || controller != null) {
 		structure = null;
 		controller = null;
@@ -21,19 +23,124 @@ function deleteConfig() {
 	return true;
 }
 
+/* Функция запускающая процесс миграции */
 function migration() {
-	alert("Здесь должна быть миграция.");
-}
 
-/* Функция миграции оформления и стилей */
-function structureManage(input) {
-	
-	if(!checkController()) {
+	if( structure == null || controller == null) {
+		alert("Добавьте все конфигурационные файлы.");
 		return false;
+	} else {
+
+		removeMigrationWeb();
+
+		createLogic(getLexemController(controller));
+		createStructure();
+
+		alert("Миграция выполнена.");
 	}
 
+	return true;
+}
+
+/* Функция удаления элементов страници миграции */
+function removeMigrationWeb() {
+	let wrapper = document.getElementById("wrapper");
+
+	wrapper.parentNode.removeChild(wrapper);
+}
+
+/* Функции работы с логикой */
+/* Функция миграции логики */
+function controllerManage(input) {
 	let file = input.files[0];
-	//alert('File name: ' + file.name);
+
+	let reader = new FileReader();
+
+	reader.readAsText(file);
+
+	reader.onload = function() {
+		controller = reader.result;
+		alert(controller);
+	}
+
+	reader.onerror = function() {
+		alert(reader.error);
+	};
+}
+
+/* Функция создания массива лексем из класса controller */
+function getLexemController(str) { 
+	let arrayLexem = str.split('\n');
+
+	arrayLexem = deleteEmptyItem(arrayLexem).join(' ').split(' ');
+
+	arrayLexem = deleteEmptyItem(arrayLexem);
+
+	arrayLexem = arrayLexem.map((item) => item.replace(/\s+/g, ''));
+
+	return arrayLexem.map((item) => item.replace(/\s+/g, ''));
+}
+
+/* Функции работы с файлом логики*/
+function createLogic(arrayLexem) {
+	for(let i = 0; i < arrayLexem.length; i++) {
+
+		if(arrayLexem[i] == "void") {
+			let action = arrayLexem[i + 1].slice(0, -2),
+				nameDate,
+				nameField;
+			i++;
+
+			while(arrayLexem[i] != "}") {
+
+				if(arrayLexem[i] == "Date") {
+					nameDate = arrayLexem[i + 1];
+					i++;
+				}
+
+				if(arrayLexem[i].includes("setText")) {
+					nameField = arrayLexem[i].split('.')[0];
+					logic[action] = createFunctionDate(nameDate, nameField);
+				}
+
+				i++;
+			}	
+		}
+	}
+}
+
+function deleteEmptyItem(arr) {
+	for(let i = 0; i < arr.length; i++) {
+		if(arr[i] == false) {
+			arr.splice(i, 1);
+			i--;
+		}
+	}
+
+	return arr;
+}
+
+/* Создание логики каждого типа */
+
+//let click = eval("function click() {let now = new Date(); return now;}");
+function createFunctionDate(nameDate, nameField) {
+	let code = "let " + nameDate + " = new Date();" +
+			   "let " + nameField + " = document.getElementById('" + nameField +"');" + 
+			    nameField + ".value = " + nameDate + ";"; 
+
+	return new Function('', code);
+}
+
+/*
+let click = createFunctionDate();
+
+click();
+*/
+
+/* Функции работы со структурой и оформлением */
+/* Функция миграции оформления и стилей */
+function structureManage(input) {
+	let file = input.files[0];
 
 	let reader = new FileReader();
 
@@ -42,8 +149,16 @@ function structureManage(input) {
 	reader.onload = function() {
 		structure = reader.result;
 		alert(structure);
+	};
 
-		let jsonObj = JSON.parse(structure);
+	reader.onerror = function() {
+		alert(reader.error);
+	};
+}
+
+/* Функции обработки структуры и оформления */
+function createStructure() {
+	let jsonObj = JSON.parse(structure);
 		
 		/*for(let key in jsonObj) {
 			alert(`${key}: ${jsonObj[key]}`);
@@ -55,53 +170,95 @@ function structureManage(input) {
 			}
 		}*/
 
-		let children = jsonObj["AnchorPane"]["children"];
+	let children = jsonObj["AnchorPane"]["children"];
 
-		let div = document.createElement('div');
-			div.className = "note";
-			document.body.append(div);
+	let div = document.createElement('div');
+	div.className = "note";
 
-		for(let item in children) {
+	let style = document.createElement("style");
 
-			switch (item) {
-				case "Label":
-					createLabel(children[item], div);
-					break;
-				case "Button":
-					createButton(children[item], div);
-					break;
-				case "TextField":
-					createTextField(children[item], div);
-					break;
-				default:
-					break;
-			}
+	style.type = "text/css";
+	style.innerHTML = getStyleFromJSON(children["style"], div.className);
+	document.getElementsByTagName('head')[0].appendChild(style);
+
+	document.body.append(div);
+
+	for(let item in children) {
+
+		switch (item) {
+			case "Label":
+				createLabel(children[item], div);
+				break;
+			case "Button":
+				createButton(children[item], div);
+				break;
+			case "TextField":
+				createTextField(children[item], div);
+				break;
+			default:
+				break;
 		}
-	};
-
-	reader.onerror = function() {
-		alert(reader.error);
-	};
+	}
 }
 
-/* Функция миграции логики */
-function controllerManage(input) {
-	let file = input.files[0];
-	//alert('File name: ' + file.name);
+/* Создание каждого элемента приложения */ 
+function createLabel(label, div) {
+	let nodeLabel = document.createElement('p');
+	nodeLabel.innerHTML = label["text"];
+	
+	div.append(nodeLabel);
+}
 
-	let reader = new FileReader();
+function createButton(button, div) {
+	let nodeButton = document.createElement("button");
+	nodeButton.innerHTML = button["text"];
+	nodeButton.id = button["fx:id"];
+	//nodeButton.onclick = window[button["onAction"].slice(1)];
+	//alert(button["onAction"].slice(1));
+	nodeButton.onclick = logic[button["onAction"].slice(1)]; // Определение функции логики для кнопки
+	//nodeButton.onclick = logic.click;
+	//alert(logic.click);
+	div.append(nodeButton);
+}
 
-	reader.readAsText(file);
+function createTextField(textField, div) {
+	let nodeTextField = document.createElement("input");
+	nodeTextField.id = textField["fx:id"];
 
-	reader.onload = function() {
-		controller = reader.result;
+	let style = document.createElement("style");
 
-		createLogic(getLexemController(controller));
+	style.type = "text/css";
+	style.innerHTML = getStyleFromJSON(textField["style"], nodeTextField.id);
+	document.getElementsByTagName('head')[0].appendChild(style);
+
+	nodeTextField.className = nodeTextField.id;
+
+	div.append(nodeTextField);
+}
+
+/* Функции обработки оформления */
+function getStyleFromJSON(str, selector) {
+	let arrayStyle = str.split(' ');
+
+	for(let i = 0; i < arrayStyle.length; i++) {
+
+		if(arrayStyle[i].slice(0, 4) == "-fx-") {
+			arrayStyle[i] = arrayStyle[i].substring(4)
+		}
 	}
 
-	reader.onerror = function() {
-		alert(reader.error);
-	};
+	for(let i = 0; i < arrayStyle.length; i++) {
+
+		if (arrayStyle[i] == "border-radius:" || 
+			arrayStyle[i] == "background-radius:" || 
+			arrayStyle[i] == "border-width:" ||
+			arrayStyle[i] == "width:" ||
+			arrayStyle[i] == "height:") {
+			arrayStyle[i + 1] = arrayStyle[i + 1].slice(0, -1) + "px" + ';';
+		}
+	}
+
+	return "." + selector + " { " + arrayStyle.join(' ') + '}';
 }
 
 /* Функции проверки */
@@ -129,137 +286,14 @@ function checkController() {
 	return true;
 }
 
-/* Функции обработки оформления */
+/* Функция создания новой страницы */
+/*function createDOM() {
+	let newDOM = window.open("", "Web App");
 
-/* Создание каждого элемента приложения */ 
-function createLabel(label, div) {
-	let nodeLabel = document.createElement('p');
-	nodeLabel.innerHTML = label["text"];
-	div.append(nodeLabel);
-}
+	newDOM.document.open();
 
-function createButton(button, div) {
-	let nodeButton = document.createElement("button");
-	nodeButton.innerHTML = button["text"];
-	nodeButton.id = button["fx:id"];
-	//nodeButton.onclick = window[button["onAction"].slice(1)];
-	//alert(button["onAction"].slice(1));
-	nodeButton.onclick = logic[button["onAction"].slice(1)]; // Определение функции логики для кнопки
-	//nodeButton.onclick = logic.click;
-	//alert(logic.click);
-	div.append(nodeButton);
-}
+	newDOM.document.write("<html><head><meta charset='utf-8'><title>Веб-приложение</title></head>");
+	newDOM.document.write("<body><p>Hey</p></body></html>");
 
-function createTextField(textField, div) {
-	let nodeTextField = document.createElement("input");
-	nodeTextField.id = "textField";
-
-	let style = document.createElement("style");
-
-	style.type = "text/css";
-	style.innerHTML = getStyleFromJSON(textField["style"]);
-	document.getElementsByTagName('head')[0].appendChild(style);
-
-	nodeTextField.className = "textField";
-
-	div.append(nodeTextField);
-}
-
-/* Функции работы с файлом логики*/
-function deleteEmptyItem(arr) {
-	for(let i = 0; i < arr.length; i++) {
-		if(arr[i] == false) {
-			arr.splice(i, 1);
-			i--;
-		}
-	}
-
-	return arr;
-}
-
-function createLogic(arrayLexem) {
-	let action;
-
-	alert(arrayLexem);
-
-	for(let i = 0; i < arrayLexem.length; i++) {
-
-		if(arrayLexem[i] == "void") {
-			action = arrayLexem[i + 1].slice(0, -2);
-			i++;
-
-			alert(action);
-
-			while(arrayLexem[i] != "}") {
-				//alert(arrayLexem[i]);
-
-				if(arrayLexem[i] == "Date") {
-					let nameDate = arrayLexem[i + 1];
-
-					let btn = document.getElementById("btn");
-
-					logic[action] = createFunctionDate(nameDate);
-
-					i++;
-				}
-
-				i++;
-			}
-		}
-	}
-}
-
-/* Создание логики каждого типа */
-
-//let click = eval("function click() {let now = new Date(); return now;}");
-function createFunctionDate(nameDate) {
-	let code = "let " + nameDate + " = new Date();" +
-			   "let textField = document.getElementById('textField');" + 
-			   "textField.value = " + nameDate + ";"; 
-
-	return new Function(code);
-}
-
-/*
-let click = createFunctionDate();
-
-click();
-*/
-
-/* Функция создания массива лексем из класса controller */
-function getLexemController(str) { 
-	let arrayLexem = str.split('\n');
-
-	arrayLexem = deleteEmptyItem(arrayLexem).join(' ').split(' ');
-
-	arrayLexem = deleteEmptyItem(arrayLexem);
-
-	arrayLexem = arrayLexem.map((item) => item.replace(/\s+/g, ''));
-
-	return arrayLexem.map((item) => item.replace(/\s+/g, ''));
-}
-
-/* Функции обработки оформления */
-function getStyleFromJSON(str) {
-	let arrayStyle = str.split(' ');
-
-	for(let i = 0; i < arrayStyle.length; i++) {
-
-		if(arrayStyle[i].slice(0, 4) == "-fx-") {
-			arrayStyle[i] = arrayStyle[i].substring(4)
-		}
-	}
-
-	for(let i = 0; i < arrayStyle.length; i++) {
-
-		if (arrayStyle[i] == "border-radius:" || 
-			arrayStyle[i] == "background-radius:" || 
-			arrayStyle[i] == "border-width:" ||
-			arrayStyle[i] == "width:" ||
-			arrayStyle[i] == "height:") {
-			arrayStyle[i + 1] = arrayStyle[i + 1].slice(0, -1) + "px" + ';';
-		}
-	}
-
-	return ".textField { " + arrayStyle.join(' ') + '}';
-}
+	return newDOM;
+} Эта идея требует много времени реализации*/
